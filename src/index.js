@@ -1,20 +1,26 @@
 import './css/styles.css';
 import axios from 'axios/dist/axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import debounce from 'lodash.debounce';
-const DEBOUNCE_DELAY = 300;
 
 const gallery = document.querySelector('.gallery');
 const btnLoadMore = document.querySelector('.load-more');
 const input = document.querySelector('input[name="searchQuery"]');
 const form = document.querySelector('.search-form');
+let request = '';
+let page = 1;
+
 form.addEventListener('submit', handlerSearchImages);
+btnLoadMore.addEventListener('click', handlerLoadMore);
 
 async function handlerSearchImages(event) {
   event.preventDefault();
   btnLoadMore.classList.add('visually-hidden');
-  const request = input.value;
-  let page = 1;
+  request = input.value;
+  if (!request) {
+    return;
+  }
+  page = 1;
+  // event.currentTarget.reset();
   try {
     const images = await getImages(request, page);
     if (!images.length) {
@@ -24,26 +30,6 @@ async function handlerSearchImages(event) {
     gallery.innerHTML = markupGallery;
 
     btnLoadMore.classList.remove('visually-hidden');
-    btnLoadMore.addEventListener('click', handlerLoadMore);
-    async function handlerLoadMore() {
-      const per_page = 40;
-      const totalPages = 500 / per_page;
-      page += 1;
-      try {
-        const images = await getImages(request, page);
-        console.log(request);
-        if (page > totalPages) {
-          throw new Error();
-        }
-        const markupGallery = createMarkupGallery(images);
-        gallery.insertAdjacentHTML('beforeend', markupGallery);
-      } catch (error) {
-        btnLoadMore.classList.add('visually-hidden');
-        Notify.failure(
-          'We`re sorry, but you`ve reached the end of search results.'
-        );
-      }
-    }
   } catch (error) {
     Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
@@ -82,7 +68,7 @@ function createMarkupGallery(images) {
         downloads,
       }) => `
   <div class="photo-card">
-  <img src="${
+  <img class="photo-img" src="${
     webformatURL ||
     'https://liftlearning.com/wp-content/uploads/2020/09/default-image.png'
   }" alt="${tags}" loading="lazy" />
@@ -108,6 +94,27 @@ function createMarkupGallery(images) {
 `
     )
     .join('');
+}
+
+async function handlerLoadMore() {
+  const per_page = 40;
+  const totalPages = Math.floor(500 / per_page);
+  // page += 1;
+  try {
+    page += 1;
+    const images = await getImages(request, page);
+    console.log(request);
+    if (page > totalPages) {
+      throw new Error();
+    }
+    const markupGallery = createMarkupGallery(images);
+    gallery.insertAdjacentHTML('beforeend', markupGallery);
+  } catch (error) {
+    btnLoadMore.classList.add('visually-hidden');
+    Notify.failure(
+      'We`re sorry, but you`ve reached the end of search results.'
+    );
+  }
 }
 
 // btnLoadMore.addEventListener('click', handlerLoadMore);
