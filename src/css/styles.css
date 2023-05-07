@@ -12,52 +12,15 @@ body {
   line-height: 1.5;
 }
 
-#search-box {
-  font: inherit;
-  padding: 8px;
-  max-width: 320px;
-  margin-bottom: 16px;
-}
-
-.country-info-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.country-image {
-  width: 40px;
-  object-fit: contain;
-}
-
-.country-title {
-  margin: 0;
-  font-size: 45px;
-}
-
-.country-text {
-  font-size: 25px;
-  font-weight: 700;
-}
-
-.country-span {
-  font-size: 20px;
-  font-weight: normal;
-}
-
-.country-list {
-  list-style: none;
-}
-
-.country-item {
-  display: flex;
-  gap: 10px;
-}
-
-.ukraine-box {
-  height: 600px;
-  padding-left: 15px;
-  background-image: url('https://w.forfun.com/fetch/d6/d6ff0809b06230abb650523d0e63a2a1.jpeg');
-  background-size: contain;
-  color: white;
+.visually-hidden {
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  margin: -1px;
 }

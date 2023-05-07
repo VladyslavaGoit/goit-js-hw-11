@@ -1,84 +1,129 @@
 import './css/styles.css';
+import axios from 'axios/dist/axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import { fetchCountries } from './fetchCountries';
 import debounce from 'lodash.debounce';
 const DEBOUNCE_DELAY = 300;
 
-const countryList = document.querySelector('.country-list');
-const countryDiv = document.querySelector('.country-info');
-const input = document.querySelector('#search-box');
-input.addEventListener('input', debounce(onInput, DEBOUNCE_DELAY));
-function onInput(event) {
-  const name = event.target.value.trim();
-  let quantityObjects;
-  fetchCountries(name)
-    .then(data => {
-      data.forEach((_, i) => {
-        quantityObjects = i + 1;
-        return quantityObjects;
-      });
-      if (quantityObjects > 10) {
-        Notify.info(
-          'Too many matches found. Please enter a more specific name.'
+const gallery = document.querySelector('.gallery');
+const btnLoadMore = document.querySelector('.load-more');
+const input = document.querySelector('input[name="searchQuery"]');
+const form = document.querySelector('.search-form');
+form.addEventListener('submit', handlerSearchImages);
+
+async function handlerSearchImages(event) {
+  event.preventDefault();
+  btnLoadMore.classList.add('visually-hidden');
+  const request = input.value;
+  let page = 1;
+  try {
+    const images = await getImages(request, page);
+    if (!images.length) {
+      throw new Error();
+    }
+    const markupGallery = createMarkupGallery(images);
+    gallery.innerHTML = markupGallery;
+
+    btnLoadMore.classList.remove('visually-hidden');
+    btnLoadMore.addEventListener('click', handlerLoadMore);
+    async function handlerLoadMore() {
+      const per_page = 40;
+      const totalPages = 500 / per_page;
+      page += 1;
+      try {
+        const images = await getImages(request, page);
+        console.log(request);
+        if (page > totalPages) {
+          throw new Error();
+        }
+        const markupGallery = createMarkupGallery(images);
+        gallery.insertAdjacentHTML('beforeend', markupGallery);
+      } catch (error) {
+        btnLoadMore.classList.add('visually-hidden');
+        Notify.failure(
+          'We`re sorry, but you`ve reached the end of search results.'
         );
-      } else if (quantityObjects === 1) {
-        countryDiv.innerHTML = createMarkupDiv(data);
-        countryList.innerHTML = '';
-      } else if (quantityObjects > 1 && quantityObjects < 10) {
-        countryDiv.innerHTML = '';
-        countryList.innerHTML = createMarkupList(data);
       }
-    })
-    .catch(
-      err => Notify.failure('Oops, there is no country with that name'),
-      (countryDiv.innerHTML = ''),
-      (countryList.innerHTML = '')
+    }
+  } catch (error) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
     );
+    gallery.innerHTML = '';
+  }
 }
-function createMarkupDiv(arr) {
-  return arr
+
+async function getImages(request, page) {
+  const response = await axios.get('https://pixabay.com/api/', {
+    params: {
+      key: '19455332-d5e97e52b6c9cba374c4e4b27',
+      q: `${request}`,
+      image_type: 'photo',
+      orientation: 'horizontal',
+      safesearch: 'true',
+      page: page,
+      per_page: 40,
+    },
+  });
+  const images = response.data.hits;
+  console.log(request);
+  return images;
+}
+
+function createMarkupGallery(images) {
+  return images
     .map(
       ({
-        flags: { svg, alt },
-        name: { official },
-        capital,
-        population,
-        languages,
-      }) => {
-        const countryLanguages = Object.values(languages)
-          .map(item => item)
-          .join(', ');
-        if (official === 'Ukraine') {
-          return `<div class="ukraine-box">
-        <div class="country-info-box">
-          <img class="country-image" src="${svg}" alt="${alt}" />
-          <h2 class="country-title">${official}</h2>
-        </div>
-        <p class="country-text">Capital: <span class="country-span">${capital[0]}</span></p>
-        <p class="country-text">Population: <span class="country-span">${population}</span></p>
-        <p class="country-text">Languages: <span class="country-span">${countryLanguages}</span></p>
-        </div>`;
-        }
-        return `
-        <div class="country-info-box">
-          <img class="country-image" src="${svg}" alt="${alt}" />
-          <h2 class="country-title">${official}</h2>
-        </div>
-        <p class="country-text">Capital: <span class="country-span">${capital[0]}</span></p>
-        <p class="country-text">Population: <span class="country-span">${population}</span></p>
-        <p class="country-text">Languages: <span class="country-span">${countryLanguages}</span></p>`;
-      }
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => `
+  <div class="photo-card">
+  <img src="${
+    webformatURL ||
+    'https://liftlearning.com/wp-content/uploads/2020/09/default-image.png'
+  }" alt="${tags}" loading="lazy" />
+  <div class="info">
+    <p class="info-item">
+      <b>Likes</b>
+      ${likes || 'Not found'}
+    </p>
+    <p class="info-item">
+      <b>Views</b>
+      ${views || 'Not found'}
+    </p>
+    <p class="info-item">
+      <b>Comments</b>
+      ${comments || 'Not found'}
+    </p>
+    <p class="info-item">
+      <b>Downloads</b>
+      ${downloads || 'Not found'}
+    </p>
+  </div>
+</div>
+`
     )
     .join('');
 }
-function createMarkupList(arr) {
-  return arr
-    .map(
-      ({ flags: { svg, alt }, name: { official } }) =>
-        `<li class="country-item">
-        <img class="country-image" src="${svg}" alt="${alt}">
-        <h2>${official}</h2>
-    </li>`
-    )
-    .join('');
-}
+
+// btnLoadMore.addEventListener('click', handlerLoadMore);
+
+// async function handlerLoadMore(event) {
+//   try {
+//     page += 1;
+//     const images = await getImages(request, page);
+//     if (!images.length) {
+//       throw new Error();
+//     }
+//     renderGallery(images);
+//     console.log(images);
+//   } catch (error) {
+//     Notify.failure(
+//       'Sorry, there are no images matching your search query. Please try again.'
+//     );
+//   }
+// }
