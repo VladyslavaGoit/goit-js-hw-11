@@ -12,6 +12,12 @@ body {
   line-height: 1.5;
 }
 
+a {
+  display: block;
+  text-decoration: none;
+  color: #000;
+}
+
 header {
   margin-bottom: 20px;
   background-color: rgb(73, 73, 223);

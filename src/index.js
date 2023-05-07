@@ -2,6 +2,9 @@ import './css/styles.css';
 import axios from 'axios/dist/axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+
 const gallery = document.querySelector('.gallery');
 const btnLoadMore = document.querySelector('.load-more');
 const input = document.querySelector('input[name="searchQuery"]');
@@ -9,13 +12,20 @@ const form = document.querySelector('.search-form');
 let request = '';
 let page = 1;
 
+console.dir(document);
+
 form.addEventListener('submit', handlerSearchImages);
 btnLoadMore.addEventListener('click', handlerLoadMore);
+
+var lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 async function handlerSearchImages(event) {
   event.preventDefault();
   btnLoadMore.classList.add('visually-hidden');
-  request = input.value;
+  request = input.value.trim();
   if (!request) {
     return;
   }
@@ -28,6 +38,7 @@ async function handlerSearchImages(event) {
     }
     const markupGallery = createMarkupGallery(images);
     gallery.innerHTML = markupGallery;
+    lightbox.refresh();
     Notify.success(`Hooray! We found ${data.totalHits} images.`);
     btnLoadMore.classList.remove('visually-hidden');
   } catch (error) {
@@ -69,6 +80,7 @@ function createMarkupGallery(images) {
         downloads,
       }) => `
   <div class="photo-card">
+  <a href="${largeImageURL}">
   <img class="photo-img" src="${
     webformatURL ||
     'https://liftlearning.com/wp-content/uploads/2020/09/default-image.png'
@@ -91,6 +103,7 @@ function createMarkupGallery(images) {
       ${downloads || 'Not found'}
     </p>
   </div>
+  </a>
 </div>
 `
     )
@@ -104,6 +117,7 @@ async function handlerLoadMore() {
     const images = data.hits;
     const markupGallery = createMarkupGallery(images);
     gallery.insertAdjacentHTML('beforeend', markupGallery);
+    lightbox.refresh();
     if (images.length < 40) {
       btnLoadMore.classList.add('visually-hidden');
       Notify.failure(
