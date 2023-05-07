@@ -12,8 +12,6 @@ const form = document.querySelector('.search-form');
 let request = '';
 let page = 1;
 
-console.dir(document);
-
 form.addEventListener('submit', handlerSearchImages);
 btnLoadMore.addEventListener('click', handlerLoadMore);
 
@@ -62,8 +60,6 @@ async function getImages(request, page) {
     },
   });
   const data = response.data;
-  console.log(data);
-  // const images = response.data.hits;
   return data;
 }
 
