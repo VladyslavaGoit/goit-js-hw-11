@@ -86,6 +86,7 @@ img {
   height: 100%;
   width: 40px;
   border: none;
+  cursor: pointer;
 }
 
 .search-form > button:hover {
@@ -130,4 +131,8 @@ img {
   line-height: 1.875;
   letter-spacing: 0.06em;
   cursor: pointer;
+}
+
+.load-more:hover {
+  background-color: rgb(88, 88, 220);
 }

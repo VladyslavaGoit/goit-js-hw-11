@@ -51,7 +51,6 @@ async function getImages(request, page) {
     },
   });
   const images = response.data.hits;
-  console.log(request);
   return images;
 }
 
@@ -99,11 +98,9 @@ function createMarkupGallery(images) {
 async function handlerLoadMore() {
   const per_page = 40;
   const totalPages = Math.floor(500 / per_page);
-  // page += 1;
   try {
     page += 1;
     const images = await getImages(request, page);
-    console.log(request);
     if (page > totalPages) {
       throw new Error();
     }
@@ -116,21 +113,3 @@ async function handlerLoadMore() {
     );
   }
 }
-
-// btnLoadMore.addEventListener('click', handlerLoadMore);
-
-// async function handlerLoadMore(event) {
-//   try {
-//     page += 1;
-//     const images = await getImages(request, page);
-//     if (!images.length) {
-//       throw new Error();
-//     }
-//     renderGallery(images);
-//     console.log(images);
-//   } catch (error) {
-//     Notify.failure(
-//       'Sorry, there are no images matching your search query. Please try again.'
-//     );
-//   }
-// }
