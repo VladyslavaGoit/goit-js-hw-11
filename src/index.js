@@ -20,15 +20,15 @@ async function handlerSearchImages(event) {
     return;
   }
   page = 1;
-  // event.currentTarget.reset();
   try {
-    const images = await getImages(request, page);
+    const data = await getImages(request, page);
+    const images = data.hits;
     if (!images.length) {
       throw new Error();
     }
     const markupGallery = createMarkupGallery(images);
     gallery.innerHTML = markupGallery;
-
+    Notify.success(`Hooray! We found ${data.totalHits} images.`);
     btnLoadMore.classList.remove('visually-hidden');
   } catch (error) {
     Notify.failure(
@@ -50,8 +50,10 @@ async function getImages(request, page) {
       per_page: 40,
     },
   });
-  const images = response.data.hits;
-  return images;
+  const data = response.data;
+  console.log(data);
+  // const images = response.data.hits;
+  return data;
 }
 
 function createMarkupGallery(images) {
@@ -96,20 +98,20 @@ function createMarkupGallery(images) {
 }
 
 async function handlerLoadMore() {
-  const per_page = 40;
-  const totalPages = Math.floor(500 / per_page);
   try {
     page += 1;
-    const images = await getImages(request, page);
-    if (page > totalPages) {
-      throw new Error();
-    }
+    const data = await getImages(request, page);
+    const images = data.hits;
     const markupGallery = createMarkupGallery(images);
     gallery.insertAdjacentHTML('beforeend', markupGallery);
+    if (images.length < 40) {
+      btnLoadMore.classList.add('visually-hidden');
+      Notify.failure(
+        'We`re sorry, but you`ve reached the end of search results.'
+      );
+    }
   } catch (error) {
-    btnLoadMore.classList.add('visually-hidden');
-    Notify.failure(
-      'We`re sorry, but you`ve reached the end of search results.'
-    );
+    console.log(error);
+    Notify.failure('Oops, something went wrong. Try again later.');
   }
 }
